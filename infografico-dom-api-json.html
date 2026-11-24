@@ -1,0 +1,1073 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Infográfico — Manipulação do DOM, API, JSON, Web Storage e Módulos JavaScript</title>
+<meta name="description" content="Recuperação contínua: infográfico interativo sobre árvore DOM, assincronia web, APIs, JSON, Web Storage e modularização em JavaScript.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230f8a7d'/%3E%3Cpath d='M16 6v20M16 12l-6-4M16 12l6-4M16 20l-6 4M16 20l6 4' stroke='%23fff' stroke-width='2.4' fill='none' stroke-linecap='round'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+/* ============ Base ============ */
+:root{
+  --paper:#f3eee4; --card:#fffdf8; --ink:#222b33; --muted:#5b6670; --line:#e2d8c6;
+  --dom:#2f6fed; --async:#7a56d6; --api:#0f8a7d; --json:#c07a12; --storage:#c2455f; --mod:#1f86b8;
+  --code-bg:#1e2630; --code-line:#2c3744;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  margin:0; background:var(--paper); color:var(--ink);
+  font-family:"IBM Plex Sans", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  line-height:1.55; font-size:16px;
+  background-image:radial-gradient(#d9cfbb 1px, transparent 1px);
+  background-size:26px 26px;
+}
+.wrap{max-width:1080px;margin:0 auto;padding:0 22px}
+h1,h2,h3{font-family:"Space Grotesk","IBM Plex Sans",system-ui,sans-serif;line-height:1.2}
+a{color:var(--api);text-decoration:none}
+a:hover{text-decoration:underline}
+strong{font-weight:600}
+code{font-family:"JetBrains Mono",ui-monospace,Menlo,Consolas,monospace;font-size:.86em;background:#ece4d3;border:1px solid var(--line);border-radius:5px;padding:1px 5px}
+/* ============ Nav ============ */
+.nav{position:sticky;top:0;z-index:40;background:rgba(243,238,228,.92);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+.nav-in{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:9px 22px;max-width:1080px;margin:0 auto}
+.nav-brand{font-family:"Space Grotesk";font-weight:700;font-size:14px;letter-spacing:.02em;margin-right:auto}
+.nav a{font-size:13px;color:var(--muted);padding:4px 9px;border-radius:8px;white-space:nowrap}
+.nav a:hover{background:#ece4d3;color:var(--ink);text-decoration:none}
+.nav .btn{margin-left:6px}
+/* ============ Buttons ============ */
+.btn{display:inline-flex;align-items:center;gap:7px;font:600 13.5px "IBM Plex Sans",sans-serif;border:1px solid var(--line);background:var(--card);color:var(--ink);padding:8px 14px;border-radius:999px;cursor:pointer;transition:.15s}
+.btn:hover{border-color:var(--muted)}
+.btn-main{background:var(--api);border-color:var(--api);color:#fff}
+.btn-main:hover{filter:brightness(1.06);border-color:var(--api)}
+.btn-danger{color:#9d2f46;border-color:#e3b9c3}
+.btn[disabled]{opacity:.55;cursor:wait}
+/* ============ Hero ============ */
+.hero{padding:44px 0 22px}
+.eyebrow{display:inline-flex;align-items:center;gap:8px;font-size:12.5px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--api)}
+.eyebrow::before{content:"";width:26px;height:2px;background:var(--api)}
+.hero h1{font-size:clamp(28px,4.4vw,44px);margin:14px 0 12px;max-width:22ch}
+.hero .lead{font-size:17px;color:var(--muted);max-width:72ch;margin:0 0 18px}
+.meta-chips{display:flex;flex-wrap:wrap;gap:10px;margin:0 0 26px}
+.chip{background:var(--card);border:1px solid var(--line);border-radius:999px;padding:7px 14px;font-size:13px;color:var(--muted)}
+.chip strong{color:var(--ink)}
+/* ============ Map ============ */
+.map{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:22px;box-shadow:0 10px 26px rgba(70,58,34,.08)}
+.map-hub{max-width:520px;margin:0 auto 6px;text-align:center;background:linear-gradient(135deg,#0f8a7d,#1f86b8);color:#fff;border-radius:14px;padding:16px 20px}
+.map-hub .hub-title{font-family:"Space Grotesk";font-weight:700;font-size:18px}
+.map-hub .hub-sub{font-size:13px;opacity:.92;margin-top:3px}
+.stem{width:2px;height:14px;background:#b9ac8e;margin:0 auto}
+.map-row{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.map-node{background:#fff;border:1px solid var(--line);border-radius:13px;padding:14px 15px;position:relative}
+.map-node .mn-tag{display:inline-flex;align-items:center;gap:7px;font-weight:700;font-size:14px;font-family:"Space Grotesk"}
+.map-node .mn-dot{width:10px;height:10px;border-radius:50%;flex:none}
+.map-node .mn-desc{font-size:12.8px;color:var(--muted);margin-top:6px}
+.map-node .mn-ref{font-size:11.5px;margin-top:8px;display:block}
+/* ============ Sections ============ */
+section.sec{margin-top:58px;scroll-margin-top:70px}
+.sec-head{display:grid;grid-template-columns:auto 1fr;gap:16px;align-items:start;margin-bottom:20px}
+.sec-num{font-family:"Space Grotesk";font-weight:700;font-size:44px;line-height:1;color:var(--ac,#0f8a7d);opacity:.16}
+.sec-kicker{font-size:12.5px;font-weight:700;letter-spacing:.11em;text-transform:uppercase;color:var(--ac,#0f8a7d)}
+.sec-head h2{font-size:clamp(22px,3vw,30px);margin:5px 0 8px}
+.sec-lead{color:var(--muted);margin:0;max-width:78ch}
+.sec--dom{--ac:var(--dom)} .sec--async{--ac:var(--async)} .sec--api{--ac:var(--api)}
+.sec--json{--ac:var(--json)} .sec--storage{--ac:var(--storage)} .sec--mod{--ac:var(--mod)}
+/* ============ Cards & grids ============ */
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:15px;padding:18px 20px;min-width:0}
+.card h3{font-size:16px;margin:0 0 10px;display:flex;align-items:center;gap:9px}
+.card h3 .ico{flex:none}
+.card p{margin:8px 0}
+.card .small{font-size:13px;color:var(--muted)}
+.tint{border-left:3px solid var(--ac,var(--api))}
+ul.tick{margin:8px 0;padding-left:0;list-style:none}
+ul.tick li{padding:5px 0 5px 24px;position:relative;font-size:14.5px}
+ul.tick li::before{content:"";position:absolute;left:4px;top:12px;width:8px;height:8px;border-radius:50%;background:var(--ac,var(--api))}
+/* ============ Code blocks ============ */
+.code{background:var(--code-bg);color:#d7e0e8;border-radius:13px;overflow:hidden;margin:12px 0;font-size:13.2px;line-height:1.55}
+.code .file{display:flex;align-items:center;gap:8px;background:var(--code-line);padding:8px 14px;font-family:"JetBrains Mono";font-size:12px;color:#9fb0bf}
+.code .file .fd{width:9px;height:9px;border-radius:50%;background:#e0a93e}
+.code pre{margin:0;padding:14px 16px;overflow-x:auto}
+.code code{background:none;border:none;padding:0;font-size:inherit;color:inherit}
+.tk-kw{color:#c792ea} .tk-str{color:#a5e075} .tk-com{color:#6d7f91;font-style:italic}
+.tk-num{color:#f78c6c} .tk-fn{color:#82aaff} .tk-prop{color:#7fd6c2}
+.tk-bool{color:#ff9cac} .tk-tag{color:#7dd3fc} .tk-pn{color:#9fb0bf}
+/* ============ Tables ============ */
+.tbl-wrap{overflow-x:auto;margin:12px 0}
+table.tbl{width:100%;border-collapse:collapse;background:var(--card);border:1px solid var(--line);border-radius:12px;overflow:hidden;font-size:14px;table-layout:fixed}
+.tbl th{background:var(--ac,#0f8a7d);color:#fff;text-align:left;padding:10px 13px;font-weight:600;font-size:13px}
+.tbl td{padding:9px 13px;border-top:1px solid var(--line);vertical-align:top}
+.tbl tr:nth-child(even) td{background:#f8f3e9}
+.tbl code{font-size:12.5px}
+.tbl td code{white-space:nowrap}
+.tbl-wrap{-webkit-overflow-scrolling:touch}
+/* ============ Timeline ============ */
+.tl{display:grid;grid-template-columns:1fr 1fr 1fr;gap:0;margin:16px 0;position:relative}
+.tl-node{padding:0 18px;position:relative}
+.tl-node .tl-n{width:34px;height:34px;border-radius:50%;background:var(--ac,var(--async));color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-family:"Space Grotesk";margin-bottom:10px}
+.tl-node h4{margin:0 0 6px;font-size:15px;font-family:"Space Grotesk"}
+.tl-node p{margin:0;font-size:13.5px;color:var(--muted)}
+.tl-line{position:absolute;top:17px;left:16%;right:16%;height:2px;background:linear-gradient(90deg,var(--async),var(--api));opacity:.35;z-index:-1}
+/* ============ DOM tree diagram ============ */
+.domtree{font-family:"JetBrains Mono",monospace;font-size:12.8px;line-height:1.8}
+.domtree ul{list-style:none;padding-left:22px;margin:0;border-left:1.5px dashed #b9ac8e}
+.domtree li{position:relative}
+.domtree li::before{content:"";position:absolute;left:-22px;top:0;width:20px;height:1.5px;border-bottom:1.5px dashed #b9ac8e}
+.nd{display:inline-block;background:#fff;border:1px solid var(--line);border-radius:7px;padding:1px 9px;margin:3px 0}
+.nd.el{border-color:#9db9ee;color:#1d4ea8}
+.nd.tx{border-color:#c9b489;color:#8a5d0d}
+.nd.at{border-color:#93d2ca;color:#0b6359}
+.legend{display:flex;gap:16px;flex-wrap:wrap;font-size:12.5px;color:var(--muted);margin-top:10px}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+/* ============ Demos ============ */
+.demo{border:1.8px dashed var(--ac,var(--api));border-radius:15px;background:#fff;margin:16px 0;overflow:hidden}
+.demo-bar{display:flex;align-items:center;gap:9px;padding:10px 16px;background:#f2f8f6;background:color-mix(in srgb,var(--ac,var(--api)) 9%,#fff);font-weight:600;font-size:13.5px}
+.demo-bar .dot{width:9px;height:9px;border-radius:50%;background:var(--ac,var(--api))}
+.demo-bar .hint{font-weight:400;color:var(--muted);font-size:12.5px;margin-left:auto}
+.demo-body{padding:16px;display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.demo-controls{display:flex;flex-wrap:wrap;gap:9px;align-content:start}
+.demo-out{background:#f7f2e8;border:1px solid var(--line);border-radius:11px;padding:12px 14px;font-size:13.8px;min-height:70px}
+.demo-out .empty{color:#8a939c;font-style:italic}
+.demo-status{font-size:12.8px;color:var(--muted);margin-top:8px}
+.dom-stage .dom-box{background:#fff;border:1.5px solid var(--line);border-radius:11px;padding:13px 15px;font-size:14px;transition:.2s}
+.dom-stage .dom-box.destaque{border-color:var(--dom);background:#eaf2ff;box-shadow:0 0 0 3px rgba(47,111,237,.14)}
+.dom-list{margin:10px 0 0;padding:0 0 0 2px;list-style:none}
+.dom-list li{background:#fff;border:1px solid var(--line);border-radius:9px;padding:7px 12px;margin:7px 0;cursor:pointer;font-size:13.8px}
+.dom-list li.feito{text-decoration:line-through;color:#8a939c;background:#f1ede3}
+.demo-meta{font-size:12.8px;color:var(--muted);margin-top:10px}
+textarea.code-input{width:100%;min-height:150px;background:#fff;border:1px solid var(--line);border-radius:11px;font-family:"JetBrains Mono";font-size:12.8px;padding:11px 13px;resize:vertical;color:var(--ink)}
+.demo-col h5{margin:0 0 8px;font-size:12.5px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
+/* ============ Flow (synthesis) ============ */
+.flow{display:flex;flex-wrap:wrap;align-items:stretch;gap:10px;margin:16px 0}
+.flow-step{flex:1 1 150px;background:var(--card);border:1px solid var(--line);border-top:3px solid var(--ac,var(--api));border-radius:12px;padding:13px 15px}
+.flow-step b{display:block;font-family:"Space Grotesk";font-size:14.5px;margin-bottom:4px}
+.flow-step span{font-size:12.8px;color:var(--muted)}
+.flow-arrow{align-self:center;color:var(--muted);font-size:20px}
+/* ============ References ============ */
+.refs{columns:2;column-gap:28px;font-size:13.8px}
+.refs li{margin-bottom:8px;break-inside:avoid}
+.footer{margin-top:60px;border-top:1px solid var(--line);padding:22px 0 40px;color:var(--muted);font-size:13px}
+/* ============ Responsive ============ */
+@media (max-width:880px){
+  .grid-2,.grid-3{grid-template-columns:1fr}
+  .demo-body{grid-template-columns:1fr}
+  .map-row{grid-template-columns:1fr}
+  .tl{grid-template-columns:1fr;gap:14px}
+  .tl-line{display:none}
+  .refs{columns:1}
+}
+/* ============ Print (PDF) ============ */
+@media print{
+  .nav,.btn,.demo-controls,.no-print{display:none !important}
+  body{background:#fff;background-image:none;font-size:12.5px}
+  .wrap{max-width:100%;padding:0 8px}
+  .card,.demo,.code,.tbl-wrap,.tl-node,.flow-step{break-inside:avoid}
+  section.sec{margin-top:24px}
+  .code,.tbl th,.demo-bar,.map-hub{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  a{color:var(--ink);text-decoration:none}
+  .demo-body{display:block}
+  .code pre{white-space:pre-wrap;word-break:break-word;overflow:visible}
+  .tbl-wrap{overflow:visible}
+  .demo-col{margin-bottom:12px}
+  .map-row{grid-template-columns:repeat(3,1fr)}
+  .sec-num{opacity:.1}
+}
+@page{size:A4;margin:11mm}
+</style>
+</head>
+<body>
+
+<!-- ============ Navigation ============ -->
+<nav class="nav no-print">
+  <div class="nav-in">
+    <span class="nav-brand">JS · Recuperação Contínua</span>
+    <a href="#mapa">Mapa</a>
+    <a href="#dom">DOM</a>
+    <a href="#assincronia">Assincronia</a>
+    <a href="#api">API</a>
+    <a href="#json">JSON</a>
+    <a href="#storage">Storage</a>
+    <a href="#modulos">Módulos</a>
+    <a href="#sintese">Síntese</a>
+    <button class="btn btn-main" onclick="window.print()">Imprimir / Salvar PDF</button>
+  </div>
+</nav>
+
+<!-- ============ Hero ============ -->
+<header class="hero wrap" id="mapa">
+  <span class="eyebrow">Recuperação contínua · Desenvolvimento Web</span>
+  <h1>Manipulação do DOM, Assincronia, API, JSON, Web Storage e Modularização em JavaScript</h1>
+  <p class="lead">Mapa mental e infográfico interativo que reúne os seis eixos da atividade: como o JavaScript lê e altera a árvore do navegador, como as requisições web ocorrem sem travar a página, o que é uma API, como os dados trafegam em JSON, como o navegador guarda dados localmente e como o código é organizado em módulos. Cada conceito traz definição, exemplo de código e uma demonstração prática.</p>
+  <div class="meta-chips">
+    <span class="chip">Prazo de entrega: <strong>08/12/2026 · 22h00</strong></span>
+    <span class="chip">Formato: <strong>mapa mental / infográfico</strong></span>
+    <span class="chip">Critérios: <strong>Clareza · Compreensão · Construção de conceitos · Criatividade · Domínio</strong></span>
+    <span class="chip">Tecnologias: <strong>HTML · CSS · JavaScript (DOM, Fetch, JSON, Storage, ES Modules)</strong></span>
+  </div>
+
+  <!-- Mapa mental -->
+  <div class="map">
+    <div class="map-hub">
+      <div class="hub-title">Aplicação Web em JavaScript</div>
+      <div class="hub-sub">seis pilares conectados: a página, o fluxo de dados e a organização do código</div>
+    </div>
+    <div class="stem"></div>
+    <div class="map-row">
+      <div class="map-node">
+        <span class="mn-tag"><span class="mn-dot" style="background:var(--dom)"></span>1 · DOM</span>
+        <p class="mn-desc">Árvore de nós gerada a partir do HTML; o JavaScript seleciona, cria, altera e remove elementos e reage a eventos.</p>
+        <a class="mn-ref" href="#dom">Ir para o módulo →</a>
+      </div>
+      <div class="map-node">
+        <span class="mn-tag"><span class="mn-dot" style="background:var(--async)"></span>2 · Assincronia</span>
+        <p class="mn-desc">Requisição, processamento e resposta: a página continua responsável enquanto aguarda dados da rede.</p>
+        <a class="mn-ref" href="#assincronia">Ir para o módulo →</a>
+      </div>
+      <div class="map-node">
+        <span class="mn-tag"><span class="mn-dot" style="background:var(--api)"></span>3 · API</span>
+        <p class="mn-desc">Contrato de comunicação: métodos HTTP, endpoints e códigos de status entre o front-end e o servidor.</p>
+        <a class="mn-ref" href="#api">Ir para o módulo →</a>
+      </div>
+    </div>
+    <div class="stem"></div>
+    <div class="map-row">
+      <div class="map-node">
+        <span class="mn-tag"><span class="mn-dot" style="background:var(--json)"></span>4 · JSON</span>
+        <p class="mn-desc">Formato textual de dados; <code>JSON.parse()</code> e <code>JSON.stringify()</code> convertem entre texto e objeto.</p>
+        <a class="mn-ref" href="#json">Ir para o módulo →</a>
+      </div>
+      <div class="map-node">
+        <span class="mn-tag"><span class="mn-dot" style="background:var(--storage)"></span>5 · Web Storage</span>
+        <p class="mn-desc">Armazenamento interno do navegador: <code>localStorage</code>, <code>sessionStorage</code> e a diferença para cookies.</p>
+        <a class="mn-ref" href="#storage">Ir para o módulo →</a>
+      </div>
+      <div class="map-node">
+        <span class="mn-tag"><span class="mn-dot" style="background:var(--mod)"></span>6 · Modularização</span>
+        <p class="mn-desc">Código dividido em arquivos com <code>export</code> e <code>import</code>: organização, reuso e escopo isolado.</p>
+        <a class="mn-ref" href="#modulos">Ir para o módulo →</a>
+      </div>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+
+<!-- ============ 01 DOM ============ -->
+<section class="sec sec--dom" id="dom">
+  <div class="sec-head">
+    <div class="sec-num">01</div>
+    <div>
+      <div class="sec-kicker">Eixo 1 · Manipulação da árvore DOM</div>
+      <h2>DOM — Document Object Model: a árvore que o JavaScript manipula</h2>
+      <p class="sec-lead">Quando o navegador recebe o HTML, ele não guarda só texto: ele converte o documento em um objeto vivo, a <strong>árvore DOM</strong>, acessível pelo objeto global <code>document</code>. O JavaScript usa essa árvore para ler o conteúdo, trocar textos e cores, inserir e remover elementos e responder a ações do usuário — sem recarregar a página.</p>
+    </div>
+  </div>
+
+  <div class="grid-2">
+    <div class="card tint">
+      <h3><svg class="ico" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--dom)" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="4" r="2.2"/><circle cx="5" cy="12" r="2.2"/><circle cx="19" cy="12" r="2.2"/><circle cx="9" cy="20" r="2.2"/><path d="M10.5 5.8 6.5 10.2M13.5 5.8l4 4.4M6.8 13.9l1.6 4.2M17.2 13.9l-1.6 4.2"/></svg>Estrutura em árvore</h3>
+      <p class="small">Cada parte do HTML vira um <strong>nó</strong>: nós de elemento (tags), nós de texto (conteúdo visível) e nós de atributo (propriedades da tag). A raiz é <code>document</code>.</p>
+      <div class="domtree">
+        <ul>
+          <li><span class="nd el">document (raiz)</span>
+            <ul>
+              <li><span class="nd el">&lt;html&gt;</span>
+                <ul>
+                  <li><span class="nd el">&lt;head&gt;</span>
+                    <ul><li><span class="nd el">&lt;title&gt;</span> → <span class="nd tx">"Página"</span></li></ul>
+                  </li>
+                  <li><span class="nd el">&lt;body&gt;</span>
+                    <ul>
+                      <li><span class="nd el">&lt;h1&gt;</span> → <span class="nd tx">"Título"</span></li>
+                      <li><span class="nd el">&lt;ul id="lista"&gt;</span> <span class="nd at">atributo id</span>
+                        <ul>
+                          <li><span class="nd el">&lt;li&gt;</span> → <span class="nd tx">"Item 1"</span></li>
+                          <li><span class="nd el">&lt;li&gt;</span> → <span class="nd tx">"Item 2"</span></li>
+                        </ul>
+                      </li>
+                    </ul>
+                  </li>
+                </ul>
+              </li>
+            </ul>
+          </li>
+        </ul>
+      </div>
+      <div class="legend">
+        <span><span class="nd el" style="padding:0 7px">elemento</span> nó de tag</span>
+        <span><span class="nd tx" style="padding:0 7px">texto</span> conteúdo</span>
+        <span><span class="nd at" style="padding:0 7px">atributo</span> propriedade</span>
+      </div>
+    </div>
+
+    <div class="card tint">
+      <h3><svg class="ico" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--dom)" stroke-width="2" stroke-linecap="round"><path d="M4 6h16M4 12h16M4 18h10"/></svg>Como o JavaScript usa a árvore</h3>
+      <ul class="tick">
+        <li><strong>Selecionar:</strong> localizar nós com <code>getElementById</code>, <code>querySelector</code> e <code>querySelectorAll</code>.</li>
+        <li><strong>Navegar:</strong> subir e descer pela árvore com <code>parentNode</code>, <code>children</code>, <code>nextElementSibling</code>.</li>
+        <li><strong>Alterar:</strong> trocar <code>textContent</code>, atributos com <code>setAttribute</code> e classes com <code>classList</code>.</li>
+        <li><strong>Criar e inserir:</strong> <code>createElement</code> + <code>appendChild</code> / <code>append</code>.</li>
+        <li><strong>Remover:</strong> <code>remove()</code> no nó selecionado.</li>
+        <li><strong>Reagir a eventos:</strong> <code>addEventListener("click", ...)</code> em cliques, digitadores e envios de formulário.</li>
+      </ul>
+      <p class="small">Cuidado: <code>innerHTML</code> injeta HTML bruto e pode permitir <strong>XSS</strong> quando o texto vem do usuário; prefira <code>textContent</code> para conteúdo simples.</p>
+    </div>
+  </div>
+
+  <div class="tbl-wrap">
+    <table class="tbl" style="--ac:var(--dom)">
+      <colgroup><col style="width:14%"><col style="width:26%"><col style="width:40%"><col style="width:20%"></colgroup>
+      <thead><tr><th>Categoria</th><th>Método / propriedade</th><th>O que faz</th><th>Exemplo</th></tr></thead>
+      <tbody>
+        <tr><td>Seleção</td><td><code>document.querySelector()</code></td><td>Retorna o primeiro elemento que combina com o seletor CSS.</td><td><code>querySelector("#lista")</code></td></tr>
+        <tr><td>Seleção</td><td><code>document.querySelectorAll()</code></td><td>Retorna uma lista (NodeList) com todos os elementos encontrados.</td><td><code>querySelectorAll("li")</code></td></tr>
+        <tr><td>Seleção</td><td><code>getElementById()</code></td><td>Busca um elemento pelo atributo <code>id</code> (o mais direto quando há id).</td><td><code>getElementById("titulo")</code></td></tr>
+        <tr><td>Conteúdo</td><td><code>textContent</code></td><td>Lê ou troca o texto visível do nó, sem interpretar HTML.</td><td><code>el.textContent = "Novo"</code></td></tr>
+        <tr><td>Estilo</td><td><code>classList.add / remove / toggle</code></td><td>Adiciona, remove ou alterna classes CSS no elemento.</td><td><code>el.classList.toggle("feito")</code></td></tr>
+        <tr><td>Estrutura</td><td><code>createElement()</code> · <code>append()</code></td><td>Cria um nó novo em memória e o anexa a um elemento pai.</td><td><code>li.append(novoTexto)</code></td></tr>
+        <tr><td>Estrutura</td><td><code>remove()</code></td><td>Remove o próprio nó da árvore.</td><td><code>item.remove()</code></td></tr>
+        <tr><td>Eventos</td><td><code>addEventListener()</code></td><td>Executa uma função quando o evento ocorre (click, input, submit…).</td><td><code>btn.addEventListener("click", agir)</code></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="grid-2">
+    <div class="code">
+      <div class="file"><span class="fd"></span>exemplo-dom.js</div>
+      <pre><code><span class="tk-com">// 1) Selecionar elementos da árvore</span>
+<span class="tk-kw">const</span> lista <span class="tk-pn">=</span> document.<span class="tk-fn">querySelector</span>(<span class="tk-str">"#lista-tarefas"</span>);
+<span class="tk-kw">const</span> titulo <span class="tk-pn">=</span> document.<span class="tk-fn">getElementById</span>(<span class="tk-str">"titulo"</span>);
+
+<span class="tk-com">// 2) Alterar texto e classe</span>
+titulo.textContent <span class="tk-pn">=</span> <span class="tk-str">"Minhas tarefas"</span>;
+titulo.classList.<span class="tk-fn">add</span>(<span class="tk-str">"destaque"</span>);
+
+<span class="tk-com">// 3) Criar, configurar e inserir um &lt;li&gt;</span>
+<span class="tk-kw">const</span> item <span class="tk-pn">=</span> document.<span class="tk-fn">createElement</span>(<span class="tk-str">"li"</span>);
+item.textContent <span class="tk-pn">=</span> <span class="tk-str">"Estudar a árvore DOM"</span>;
+item.<span class="tk-fn">addEventListener</span>(<span class="tk-str">"click"</span>, () <span class="tk-kw">=&gt;</span>
+  item.classList.<span class="tk-fn">toggle</span>(<span class="tk-str">"feito"</span>));
+lista.<span class="tk-fn">append</span>(item);
+
+<span class="tk-com">// 4) Remover o último item da lista</span>
+lista.lastElementChild?.<span class="tk-fn">remove</span>();</code></pre>
+    </div>
+
+    <div class="demo" id="demo-dom">
+      <div class="demo-bar"><span class="dot"></span>Demo 01 · DOM ao vivo<span class="hint">cada botão aciona um método real do DOM</span></div>
+      <div class="demo-body">
+        <div class="demo-col demo-stage">
+          <div class="demo-out" style="min-height:auto">
+            <div class="dom-stage">
+              <div class="dom-box" id="domBox">Caixa de demonstração: o texto e o estilo abaixo vêm do JavaScript.</div>
+              <ul class="dom-list" id="domLista"></ul>
+            </div>
+          </div>
+          <p class="demo-meta">Cliques registrados nos botões: <strong id="domContador">0</strong> · clique em um item da lista para marcar como concluído.</p>
+        </div>
+        <div class="demo-col demo-controls">
+          <button class="btn" data-dom="texto">Alternar o texto da caixa</button>
+          <button class="btn" data-dom="classe">Alternar destaque (classe)</button>
+          <button class="btn" data-dom="add">Adicionar tarefa à lista</button>
+          <button class="btn" data-dom="remove">Remover última tarefa</button>
+          <button class="btn btn-danger" data-dom="limpar">Limpar lista</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 02 Assincronia ============ -->
+<section class="sec sec--async" id="assincronia">
+  <div class="sec-head">
+    <div class="sec-num">02</div>
+    <div>
+      <div class="sec-kicker">Eixo 2 · Assincronia de processos web</div>
+      <h2>Requisição, processamento e resposta: a web que não trava a tela</h2>
+      <p class="sec-lead">O JavaScript do navegador rota em <strong>uma única linha de execução</strong>: se o código esperasse uma resposta da rede de forma direta, a página congelaria. Por isso as operações de rede são <strong>assíncronas</strong>: a requisição é enviada, a página continua respondendo e, quando a resposta chega, uma função de tratamento é executada.</p>
+    </div>
+  </div>
+
+  <div class="card tint">
+    <h3><svg class="ico" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--async)" stroke-width="2" stroke-linecap="round"><path d="M4 12h4l3-7 4 14 3-7h2"/></svg>Ciclo de uma requisição web</h3>
+    <div class="tl">
+      <div class="tl-line"></div>
+      <div class="tl-node">
+        <div class="tl-n">1</div>
+        <h4>Requisição · Cliente</h4>
+        <p>Um evento (clique, carregamento, envio de formulário) dispara <code>fetch()</code>. O navegador monta a mensagem com método HTTP, URL, cabeçalhos e corpo, e envia pela rede — sem esperar.</p>
+      </div>
+      <div class="tl-node">
+        <div class="tl-n">2</div>
+        <h4>Processamento · Servidor</h4>
+        <p>O servidor recebe a requisição, verifica autenticação e permissões, executa a regra de negócio, consulta o banco de dados e monta a resposta a devolver.</p>
+      </div>
+      <div class="tl-node">
+        <div class="tl-n">3</div>
+        <h4>Resposta · Cliente</h4>
+        <p>Chegam o código de status, os cabeçalhos e o corpo (em geral JSON). A promessa é resolvida, os dados são convertidos e o JavaScript atualiza o DOM com o resultado.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid-3" style="margin-top:18px">
+    <div class="card">
+      <h3>Callbacks</h3>
+      <p class="small">Função passada como argumento para rodar depois, quando o resultado estiver pronto. Em cadeias de dependência vira aninhamento profundo, o chamado “callback hell”.</p>
+    </div>
+    <div class="card">
+      <h3>Promises</h3>
+      <p class="small">Objeto que representa um resultado futuro, em um de três estados: <strong>pendente</strong>, <strong>realizada</strong> ou <strong>rejeitada</strong>. Encadeada com <code>.then()</code> e tratada com <code>.catch()</code>.</p>
+    </div>
+    <div class="card">
+      <h3>async / await</h3>
+      <p class="small">Sintaxe moderna que faz o código assíncrono parecer síncrono dentro de uma função <code>async</code>; <code>await</code> pausa apenas aquela função, e <code>try/catch</code> trata falhas de rede.</p>
+    </div>
+  </div>
+
+  <div class="grid-2" style="margin-top:18px">
+    <div class="code">
+      <div class="file"><span class="fd"></span>consumo-assincrono.js</div>
+      <pre><code><span class="tk-kw">async function</span> <span class="tk-fn">carregarUsuario</span>(id) {
+  <span class="tk-kw">const</span> url <span class="tk-pn">=</span> <span class="tk-str">`https://jsonplaceholder.typicode.com/users/${id}`</span>;
+  <span class="tk-kw">try</span> {
+    <span class="tk-com">// Requisição enviada (estado pendente); a página não trava</span>
+    <span class="tk-kw">const</span> resposta <span class="tk-pn">=</span> <span class="tk-kw">await</span> <span class="tk-fn">fetch</span>(url);
+    <span class="tk-kw">if</span> (!resposta.ok) <span class="tk-kw">throw new</span> <span class="tk-fn">Error</span>(<span class="tk-str">"Status "</span> <span class="tk-pn">+</span> resposta.status);
+
+    <span class="tk-com">// Corpo da resposta (JSON) convertido em objeto JavaScript</span>
+    <span class="tk-kw">const</span> usuario <span class="tk-pn">=</span> <span class="tk-kw">await</span> resposta.<span class="tk-fn">json</span>();
+    <span class="tk-kw">return</span> usuario;
+  } <span class="tk-kw">catch</span> (erro) {
+    console.<span class="tk-fn">error</span>(<span class="tk-str">"Falha na requisição:"</span>, erro.message);
+  }
+}</code></pre>
+    </div>
+
+    <div class="demo" id="demo-api">
+      <div class="demo-bar"><span class="dot"></span>Demo 02 · Fetch real · Requisição → resposta<span class="hint">API pública de exemplo</span></div>
+      <div class="demo-body">
+        <div class="demo-col">
+          <h5>Requisição montada</h5>
+          <div class="demo-out" id="apiRequisicao"><span class="empty">Nenhuma requisição ainda. Clique no botão para buscar um usuário público de exemplo.</span></div>
+          <button class="btn btn-main" id="apiBtn" style="margin-top:10px">Buscar usuário · JSONPlaceholder</button>
+          <p class="demo-status" id="apiStatus"></p>
+        </div>
+        <div class="demo-col">
+          <h5>Resposta convertida em objeto</h5>
+          <div class="demo-out" id="apiResposta"><span class="empty">O JSON recebido será exibido aqui como propriedades do objeto JavaScript.</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 03 API ============ -->
+<section class="sec sec--api" id="api">
+  <div class="sec-head">
+    <div class="sec-num">03</div>
+    <div>
+      <div class="sec-kicker">Eixo 2 · Conceitos de API</div>
+      <h2>API — Application Programming Interface: o contrato de comunicação</h2>
+      <p class="sec-lead">Uma <strong>API</strong> é o conjunto de regras, endereços e formatos que permite que dois sistemas conversem sem que um precise conhecer o funcionamento interno do outro. Na web, as <strong>APIs REST</strong> usam o protocolo HTTP: o front-end pede recursos com métodos específicos e o servidor devolve dados, geralmente em JSON.</p>
+    </div>
+  </div>
+
+  <div class="grid-2">
+    <div class="card tint">
+      <h3><svg class="ico" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--api)" stroke-width="2" stroke-linecap="round"><path d="M4 17h16M6 17V9l3-3h6l3 3v8M9 13h6"/></svg>Analogia: o garçom do restaurante</h3>
+      <p>O <strong>cliente</strong> (front-end) não entra na cozinha (servidor/banco de dados). O <strong>garçom</strong> (API) leva o pedido — a requisição com o verbo e os dados — até a cozinha e traz de volta o prato pronto — a resposta com status e conteúdo. Basta seguir o cardápio: quais pedidos existem (endpoints) e como fazê-los (métodos e formato).</p>
+      <ul class="tick">
+        <li><strong>Endpoint:</strong> endereço de um recurso, ex.: <code>/users</code>, <code>/users/3</code>.</li>
+        <li><strong>Método HTTP:</strong> o que se quer fazer com o recurso (consultar, criar, atualizar, excluir).</li>
+        <li><strong>Corpo e cabeçalhos:</strong> dados enviados e metadados como tipo de conteúdo e token de autenticação.</li>
+        <li><strong>Status code:</strong> resumo numérico do resultado da operação.</li>
+      </ul>
+    </div>
+
+    <div class="card tint">
+      <h3><svg class="ico" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--api)" stroke-width="2" stroke-linecap="round"><path d="M13 2 4 14h6l-1 8 9-12h-6l1-8z"/></svg>Anatomia de uma troca HTTP</h3>
+      <p><strong>Requisição</strong></p>
+      <ul class="tick">
+        <li>Linha: método + caminho, ex.: <code>GET /users/3</code></li>
+        <li>Cabeçalhos: <code>Content-Type: application/json</code>, <code>Authorization: Bearer &lt;token&gt;</code></li>
+        <li>Corpo: dados em JSON (presente em POST, PUT, PATCH)</li>
+      </ul>
+      <p><strong>Resposta</strong></p>
+      <ul class="tick">
+        <li>Status: código + mensagem, ex.: <code>200 OK</code></li>
+        <li>Cabeçalhos: tipo do conteúdo, tamanho, cache</li>
+        <li>Corpo: JSON com os dados solicitados ou mensagem de erro</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="grid-2" style="margin-top:18px">
+    <div class="tbl-wrap">
+      <table class="tbl" style="--ac:var(--api)">
+        <colgroup><col style="width:18%"><col style="width:44%"><col style="width:38%"></colgroup>
+        <thead><tr><th>Método</th><th>Finalidade</th><th>Status comum</th></tr></thead>
+        <tbody>
+          <tr><td><code>GET</code></td><td>Consultar recursos (lista ou detalhe)</td><td>200 OK</td></tr>
+          <tr><td><code>POST</code></td><td>Criar um novo recurso</td><td>201 Created</td></tr>
+          <tr><td><code>PUT</code></td><td>Substituir o recurso completo</td><td>200 / 204</td></tr>
+          <tr><td><code>PATCH</code></td><td>Atualizar apenas parte do recurso</td><td>200 OK</td></tr>
+          <tr><td><code>DELETE</code></td><td>Remover o recurso</td><td>204 No Content</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="tbl-wrap">
+      <table class="tbl" style="--ac:var(--api)">
+        <colgroup><col style="width:22%"><col style="width:78%"></colgroup>
+        <thead><tr><th>Status</th><th>Significado</th></tr></thead>
+        <tbody>
+          <tr><td><code>200</code></td><td>OK — requisição bem-sucedida</td></tr>
+          <tr><td><code>201</code></td><td>Created — recurso criado (uso típico de POST)</td></tr>
+          <tr><td><code>204</code></td><td>No Content — sucesso sem corpo de resposta</td></tr>
+          <tr><td><code>400</code></td><td>Bad Request — dados enviados inválidos</td></tr>
+          <tr><td><code>401</code></td><td>Unauthorized — falta autenticação</td></tr>
+          <tr><td><code>403</code></td><td>Forbidden — autenticado, mas sem permissão</td></tr>
+          <tr><td><code>404</code></td><td>Not Found — recurso inexistente</td></tr>
+          <tr><td><code>500</code></td><td>Internal Server Error — erro no servidor</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="code" style="margin-top:18px">
+    <div class="file"><span class="fd"></span>criar-usuario.js — exemplo de POST com JSON</div>
+    <pre><code><span class="tk-kw">const</span> resposta <span class="tk-pn">=</span> <span class="tk-kw">await</span> <span class="tk-fn">fetch</span>(<span class="tk-str">"https://api.exemplo.com/usuarios"</span>, {
+  method: <span class="tk-str">"POST"</span>,
+  headers: { <span class="tk-str">"Content-Type"</span>: <span class="tk-str">"application/json"</span> },
+  body: JSON.<span class="tk-fn">stringify</span>({ nome: <span class="tk-str">"Ana"</span>, email: <span class="tk-str">"ana@exemplo.com"</span> })
+});
+
+<span class="tk-kw">if</span> (resposta.ok) {
+  <span class="tk-kw">const</span> criado <span class="tk-pn">=</span> <span class="tk-kw">await</span> resposta.<span class="tk-fn">json</span>();
+  console.<span class="tk-fn">log</span>(<span class="tk-str">"ID criado:"</span>, criado.id);
+}</code></pre>
+  </div>
+</section>
+
+<!-- ============ 04 JSON ============ -->
+<section class="sec sec--json" id="json">
+  <div class="sec-head">
+    <div class="sec-num">04</div>
+    <div>
+      <div class="sec-kicker">Eixo 2 · Conversões do formato JSON</div>
+      <h2>JSON — JavaScript Object Notation: o texto que vira objeto e volta a texto</h2>
+      <p class="sec-lead">JSON é um <strong>formato textual leve</strong> de troca de dados, inspirado na sintaxe de objetos JavaScript, mas usado por qualquer linguagem. Na comunicação web os dados trafegam como <strong>texto</strong>: a API devolve uma string JSON, o código usa <code>JSON.parse()</code> para virar um objeto JavaScript e, ao enviar dados, usa <code>JSON.stringify()</code> para voltar a texto.</p>
+    </div>
+  </div>
+
+  <div class="grid-2">
+    <div class="code">
+      <div class="file"><span class="fd"></span>objeto JavaScript (dentro do código)</div>
+      <pre><code><span class="tk-kw">const</span> usuario <span class="tk-pn">=</span> {
+  nome: <span class="tk-str">"Ana"</span>,             <span class="tk-com">// chave sem aspas</span>
+  idade: <span class="tk-num">28</span>,
+  ativo: <span class="tk-bool">true</span>,
+  <span class="tk-fn">saudar</span>() { <span class="tk-kw">return</span> <span class="tk-str">"Oi!"</span> }, <span class="tk-com">// função não existe no JSON</span>
+  apelido: <span class="tk-kw">undefined</span>          <span class="tk-com">// é descartado na conversão</span>
+};</code></pre>
+    </div>
+    <div class="code">
+      <div class="file"><span class="fd"></span>dados.json (texto puro para a rede)</div>
+      <pre><code>{
+  <span class="tk-prop">"nome"</span>: <span class="tk-str">"Ana"</span>,
+  <span class="tk-prop">"idade"</span>: <span class="tk-num">28</span>,
+  <span class="tk-prop">"ativo"</span>: <span class="tk-bool">true</span>,
+  <span class="tk-prop">"tags"</span>: [<span class="tk-str">"dev"</span>, <span class="tk-str">"web"</span>],
+  <span class="tk-prop">"endereco"</span>: { <span class="tk-prop">"cidade"</span>: <span class="tk-str">"São Paulo"</span> },
+  <span class="tk-prop">"salario"</span>: <span class="tk-kw">null</span>
+}</code></pre>
+    </div>
+  </div>
+
+  <div class="grid-2" style="margin-top:18px">
+    <div class="card tint">
+      <h3><svg class="ico" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--json)" stroke-width="2" stroke-linecap="round"><path d="M8 6 4 12l4 6M16 6l4 6-4 6"/></svg>Regras da sintaxe JSON</h3>
+      <ul class="tick">
+        <li>Chaves e strings usam <strong>aspas duplas</strong>; números, <code>true</code>, <code>false</code> e <code>null</code> ficam sem aspas.</li>
+        <li>Objetos usam <code>{ }</code> e listas usam <code>[ ]</code>, com valores podendo se aninhar.</li>
+        <li>Proibido: comentários, funções, variáveis, <code>undefined</code>, aspas simples e vírgula depois do último item.</li>
+        <li>Não é um objeto “vivo”: antes de ler <code>dado.nome</code>, é preciso converter com <code>JSON.parse()</code>.</li>
+      </ul>
+    </div>
+    <div class="card tint">
+      <h3><svg class="ico" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--json)" stroke-width="2" stroke-linecap="round"><path d="M12 3v12m0 0-4-4m4 4 4-4M5 21h14"/></svg>As duas conversões essenciais</h3>
+      <ul class="tick">
+        <li><code>JSON.parse(texto)</code>: string recebida da API → objeto/array JavaScript utilizável.</li>
+        <li><code>JSON.stringify(obj, null, 2)</code>: objeto → texto JSON; o terceiro argumento ajusta a identação para leitura.</li>
+        <li>JSON malformado faz <code>parse()</code> lançar <code>SyntaxError</code>; por isso envolva em <code>try/catch</code>.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="code" style="margin-top:18px">
+    <div class="file"><span class="fd"></span>conversoes-json.js</div>
+    <pre><code><span class="tk-kw">const</span> texto <span class="tk-pn">=</span> <span class="tk-str">'{"nome":"Ana","idade":28,"ativo":true}'</span>;
+
+<span class="tk-kw">try</span> {
+  <span class="tk-com">// Texto → objeto JavaScript</span>
+  <span class="tk-kw">const</span> objeto <span class="tk-pn">=</span> JSON.<span class="tk-fn">parse</span>(texto);
+  console.<span class="tk-fn">log</span>(objeto.nome);            <span class="tk-com">// "Ana"</span>
+} <span class="tk-kw">catch</span> (erro) {
+  console.<span class="tk-fn">error</span>(<span class="tk-str">"JSON inválido:"</span>, erro.message);
+}
+
+<span class="tk-com">// Objeto → texto JSON formatado (para enviar no body de uma requisição)</span>
+<span class="tk-kw">const</span> textoJson <span class="tk-pn">=</span> JSON.<span class="tk-fn">stringify</span>(objeto, <span class="tk-kw">null</span>, <span class="tk-num">2</span>);</code></pre>
+  </div>
+
+  <div class="demo" id="demo-json">
+    <div class="demo-bar"><span class="dot"></span>Demo 03 · Conversor JSON ⇄ objeto JavaScript<span class="hint">use JSON.parse e JSON.stringify ao vivo</span></div>
+    <div class="demo-body">
+      <div class="demo-col">
+        <h5>Entrada — texto JSON (como chega da API)</h5>
+        <textarea class="code-input" id="jsonEntra">{"nome":"Ana Souza","idade":28,"ativo":true,"habilidades":["HTML","CSS","JavaScript"],"endereco":{"cidade":"São Paulo","uf":"SP"},"salario":null}</textarea>
+        <div style="margin-top:10px;display:flex;gap:9px;flex-wrap:wrap">
+          <button class="btn btn-main" id="btnParse">JSON → JS · JSON.parse()</button>
+          <button class="btn" id="btnStringify">JS → JSON · JSON.stringify()</button>
+          <button class="btn" id="btnJsonExemplo">Recarregar exemplo</button>
+        </div>
+      </div>
+      <div class="demo-col">
+        <h5>Saída — resultado da conversão</h5>
+        <div class="demo-out" id="jsonSaida"><span class="empty">O resultado aparece aqui: objeto com tipos e propriedades, ou texto JSON formatado.</span></div>
+        <p class="demo-status" id="jsonErro"></p>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ============ 05 Web Storage ============ -->
+<section class="sec sec--storage" id="storage">
+  <div class="sec-head">
+    <div class="sec-num">05</div>
+    <div>
+      <div class="sec-kicker">Eixo 3 · Armazenamento interno (Web Storage)</div>
+      <h2>Web Storage: dados que ficam no próprio navegador do usuário</h2>
+      <p class="sec-lead">A <strong>Web Storage API</strong> guarda pares <code>chave → valor</code> dentro do navegador, sem enviar nada ao servidor a cada leitura. As duas formas principais são <code>localStorage</code> (persistente) e <code>sessionStorage</code> (por aba/sessão); é o mecanismo por trás de preferências de tema, nome do usuário e estados temporários de formulário.</p>
+    </div>
+  </div>
+
+  <div class="tbl-wrap">
+    <table class="tbl" style="--ac:var(--storage)">
+      <colgroup><col style="width:16%"><col style="width:22%"><col style="width:24%"><col style="width:14%"><col style="width:12%"><col style="width:12%"></colgroup>
+      <thead><tr><th>Recurso</th><th>Persistência</th><th>Escopo</th><th>Capacidade</th><th>Vai ao servidor?</th><th>Uso típico</th></tr></thead>
+      <tbody>
+        <tr><td><code>localStorage</code></td><td>Permanece após fechar o navegador</td><td>Mesma origem; compartilhado entre abas</td><td>~5–10 MB</td><td>Não</td><td>Tema, preferências, rascunho</td></tr>
+        <tr><td><code>sessionStorage</code></td><td>Some ao fechar a aba</td><td>Apenas a aba aberta no momento</td><td>~5 MB</td><td>Não</td><td>Dados temporários de etapa</td></tr>
+        <tr><td><code>Cookies</code></td><td>Expira conforme data definida</td><td>Mesmo domínio</td><td>~4 KB</td><td>Sim, em toda requisição HTTP</td><td>Sessão e autenticação</td></tr>
+        <tr><td><code>IndexedDB</code></td><td>Persistente</td><td>No navegador</td><td>Grande volume estruturado</td><td>Não</td><td>Dados offline e consultas locais (referência)</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="grid-2" style="margin-top:18px">
+    <div class="code">
+      <div class="file"><span class="fd"></span>web-storage.js</div>
+      <pre><code><span class="tk-com">// Escrita: tudo é armazenado como string</span>
+localStorage.<span class="tk-fn">setItem</span>(<span class="tk-str">"nomeUsuario"</span>, <span class="tk-str">"Ana"</span>);
+localStorage.<span class="tk-fn">setItem</span>(<span class="tk-str">"tema"</span>, <span class="tk-str">"escuro"</span>);
+
+<span class="tk-com">// Leitura</span>
+<span class="tk-kw">const</span> nome <span class="tk-pn">=</span> localStorage.<span class="tk-fn">getItem</span>(<span class="tk-str">"nomeUsuario"</span>);
+
+<span class="tk-com">// Remoção</span>
+localStorage.<span class="tk-fn">removeItem</span>(<span class="tk-str">"tema"</span>);  <span class="tk-com">// uma chave</span>
+localStorage.<span class="tk-fn">clear</span>();                 <span class="tk-com">// tudo da origem</span>
+
+<span class="tk-com">// sessionStorage: vale só enquanto a aba estiver aberta</span>
+sessionStorage.<span class="tk-fn">setItem</span>(<span class="tk-str">"etapaAtual"</span>, <span class="tk-str">"2"</span>);</code></pre>
+    </div>
+    <div class="card tint">
+      <h3><svg class="ico" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--storage)" stroke-width="2" stroke-linecap="round"><path d="M12 3 4 7v6c0 5 3.4 7.7 8 9 4.6-1.3 8-4 8-9V7l-8-4z"/></svg>Pontos importantes</h3>
+      <ul class="tick">
+        <li>Chaves e valores são sempre <strong>strings</strong>: para objetos, use <code>JSON.stringify()</code> na escrita e <code>JSON.parse()</code> na leitura.</li>
+        <li>Isonomia de origem: só é visível na mesma combinação de protocolo, domínio e porta.</li>
+        <li>Os dados ficam acessíveis no painel do navegador (DevTools → Application); <strong>não</strong> guarde senhas ou segredos sensíveis ali.</li>
+        <li>A API é síncrona e simples; para grandes volumes ou busca estruturada, o caminho é IndexedDB.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="demo" id="demo-storage">
+    <div class="demo-bar"><span class="dot"></span>Demo 05 · Gravando e lendo preferências no navegador<span class="hint">funciona localmente, sem servidor</span></div>
+    <div class="demo-body">
+      <div class="demo-col">
+        <h5>Salvar preferência (localStorage)</h5>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <input type="text" id="storageNome" placeholder="Ex.: tema = azul" style="flex:1 1 200px;padding:9px 12px;border:1px solid var(--line);border-radius:10px;font:inherit;background:#fff">
+          <button class="btn btn-main" id="storageSalvar">Salvar</button>
+        </div>
+        <p class="small" style="margin-top:12px">Chaves salvas com o prefixo <code>demo_</code>:</p>
+        <div id="storageLista" class="demo-out" style="min-height:62px"><span class="empty">Nenhuma chave ainda.</span></div>
+        <button class="btn btn-danger" id="storageLimpar" style="margin-top:10px">Limpar chaves deste demo</button>
+      </div>
+      <div class="demo-col">
+        <h5>Estado do armazenamento</h5>
+        <div class="demo-out" id="storageEstado"></div>
+        <p class="demo-status">O contador de visitas usa <code>localStorage</code> e persiste entre recargas; a sessão usa <code>sessionStorage</code> e desaparece ao fechar a aba.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 06 Modularização ============ -->
+<section class="sec sec--mod" id="modulos">
+  <div class="sec-head">
+    <div class="sec-num">06</div>
+    <div>
+      <div class="sec-kicker">Eixo 3 · Modularização em uma aplicação JavaScript</div>
+      <h2>Módulos: o código dividido em arquivos com export e import</h2>
+      <p class="sec-lead">Modularizar é dividir a aplicação em pequenos arquivos (módulos), cada um com uma responsabilidade clara, que <strong>exportam</strong> o que pode ser reutilizado e <strong>importam</strong> de outros arquivos quando precisam. Nos navegadores, a ferramenta nativa são os <strong>ES Modules</strong>, ativados com <code>&lt;script type="module"&gt;</code>.</p>
+    </div>
+  </div>
+
+  <div class="grid-2">
+    <div class="card tint">
+      <h3><svg class="ico" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--mod)" stroke-width="2" stroke-linecap="round"><path d="M3 7h8v6H3zM13 11h8v6h-8zM7 13v4h10"/></svg>Antes × depois</h3>
+      <p><strong>Sem modularização:</strong> um único <code>script.js</code> com tudo — funções misturadas, variáveis no escopo global, risco de nomes conflitantes e difícil manutenção.</p>
+      <p><strong>Com módulos:</strong> <code>utils.js</code> (ajudadores), <code>api.js</code> (requisições), <code>ui.js</code> (DOM) e <code>app.js</code> (ponto de entrada); cada arquivo importa apenas o que usa.</p>
+      <ul class="tick">
+        <li>Escopo próprio por arquivo: variáveis não vazam para o global.</li>
+        <li><code>export</code> define o que o módulo oferece; <code>import</code> define o que o consumo recebe.</li>
+        <li>Tipos de export: <strong>nomeado</strong> (vários) e <strong>default</strong> (um por arquivo).</li>
+        <li>Em projeto real, módulos precisam ser servidos por HTTP (Live Server, por exemplo); <code>file://</code> bloqueia imports por política de segurança.</li>
+      </ul>
+    </div>
+    <div class="card tint">
+      <h3><svg class="ico" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--mod)" stroke-width="2" stroke-linecap="round"><rect x="3" y="4" width="7" height="6" rx="1.5"/><rect x="14" y="4" width="7" height="6" rx="1.5"/><rect x="8.5" y="14" width="7" height="6" rx="1.5"/><path d="M10 7h4M7 10v2.5h10V10"/></svg>Fluxo de arquivos</h3>
+      <div style="font-family:'JetBrains Mono',monospace;font-size:12.8px;line-height:2.1">
+        <div><strong>index.html</strong> → <span style="color:var(--muted)">&lt;script type="module" src="app.js"&gt;</span></div>
+        <div><strong>app.js</strong> → <span style="color:var(--mod)">import</span> { saudacao, somar } <span style="color:var(--muted)">from "./utils.js"</span></div>
+        <div><strong>utils.js</strong> → <span style="color:var(--mod)">export</span> const saudacao … / <span style="color:var(--mod)">export default</span> function somar …</div>
+      </div>
+      <div class="grid-3" style="margin-top:14px;gap:10px">
+        <div class="small"><strong>Reuso</strong><br>uma função em vários pontos</div>
+        <div class="small"><strong>Manutenção</strong><br>cada erro tem um arquivo dono</div>
+        <div class="small"><strong>Organização</strong><br>divisão por responsabilidade</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid-2" style="margin-top:18px">
+    <div class="code">
+      <div class="file"><span class="fd"></span>utils.js — módulo que exporta</div>
+      <pre><code><span class="tk-com">// Export nomeado: pode haver vários</span>
+<span class="tk-kw">export const</span> saudacao <span class="tk-pn">=</span> <span class="tk-str">"Olá, módulo!"</span>;
+
+<span class="tk-kw">export function</span> <span class="tk-fn">formatarData</span>(data) {
+  <span class="tk-kw">return new</span> <span class="tk-fn">Date</span>(data).<span class="tk-fn">toLocaleDateString</span>(<span class="tk-str">"pt-BR"</span>);
+}
+
+<span class="tk-com">// Export default: apenas um por arquivo</span>
+<span class="tk-kw">export default function</span> <span class="tk-fn">somar</span>(a, b) {
+  <span class="tk-kw">return</span> a + b;
+}</code></pre>
+    </div>
+    <div class="code">
+      <div class="file"><span class="fd"></span>app.js — ponto de entrada que importa</div>
+      <pre><code><span class="tk-kw">import</span> somar, { saudacao, formatarData } <span class="tk-kw">from</span> <span class="tk-str">"./utils.js"</span>;
+
+console.<span class="tk-fn">log</span>(saudacao);
+console.<span class="tk-fn">log</span>(<span class="tk-str">"2 + 3 ="</span>, <span class="tk-fn">somar</span>(<span class="tk-num">2</span>, <span class="tk-num">3</span>));
+console.<span class="tk-fn">log</span>(<span class="tk-str">"Hoje:"</span>, <span class="tk-fn">formatarData</span>(<span class="tk-kw">new</span> <span class="tk-fn">Date</span>()));
+
+<span class="tk-com">// Outros módulos da app: api.js (fetch), ui.js (DOM), storage.js</span></code></pre>
+    </div>
+  </div>
+
+  <div class="demo" id="demo-mod">
+    <div class="demo-bar"><span class="dot"></span>Demo 04 · Saída simulada do módulo app.js<span class="hint">equivalente ao import/export, executado nesta página</span></div>
+    <div class="demo-body">
+      <div class="demo-col">
+        <h5>Como executar no projeto real</h5>
+        <p class="small">1. Salve os dois arquivos acima na mesma pasta; 2. No HTML, use <code>&lt;script type="module" src="app.js"&gt;</code>; 3. Abra por um servidor local (ex.: Live Server) para os imports funcionarem.</p>
+        <button class="btn btn-main" id="modRun">Executar app.js (simulação local)</button>
+      </div>
+      <div class="demo-col">
+        <h5>Console da aplicação</h5>
+        <div class="demo-out" id="modSaida" style="font-family:'JetBrains Mono',monospace;font-size:12.5px;white-space:pre-wrap"><span class="empty">Saída ainda não gerada.</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ============ 07 Síntese ============ -->
+<section class="sec" id="sintese" style="--ac:var(--api)">
+  <div class="sec-head">
+    <div class="sec-num">07</div>
+    <div>
+      <div class="sec-kicker">Síntese · os conceitos funcionando juntos</div>
+      <h2>Como os seis eixos se conectam em uma aplicação real</h2>
+      <p class="sec-lead">Nenhum conceito existe isolado: a interface é o DOM, os dados chegam por uma API em formato JSON, a busca é assíncrona, as preferências ficam no Storage e o código que faz tudo isso é organizado em módulos.</p>
+    </div>
+  </div>
+
+  <div class="flow">
+    <div class="flow-step"><b>1 · Evento no DOM</b><span>Usuário clica ou digita; <code>addEventListener</code> escuta o evento.</span></div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step"><b>2 · Requisição assíncrona</b><span><code>fetch()</code> chama a API; a interface não bloqueia.</span></div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step"><b>3 · Resposta JSON</b><span>Servidor devolve status, cabeçalhos e texto JSON.</span></div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step"><b>4 · JSON.parse()</b><span>Texto vira objeto JavaScript utilizável no código.</span></div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step"><b>5 · DOM + Storage</b><span>Dados atualizam a tela; preferências são salvas localmente.</span></div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step"><b>6 · Módulos</b><span><code>export</code> / <code>import</code> organizam cada etapa em arquivos.</span></div>
+  </div>
+
+  <div class="tbl-wrap" style="margin-top:18px">
+    <table class="tbl">
+      <colgroup><col style="width:16%"><col style="width:46%"><col style="width:38%"></colgroup>
+      <thead><tr><th>Conceito</th><th>Papel no conjunto</th><th>O que a aplicação perde sem ele</th></tr></thead>
+      <tbody>
+        <tr><td>DOM</td><td>Árvore viva que representa a página e recebe as atualizações visuais.</td><td>Impossível alterar texto, estilos ou lista sem recarregar o HTML.</td></tr>
+        <tr><td>Assincronia</td><td>Executa rede e tempo sem congelar a linha de eventos da interface.</td><td>A tela travaria enquanto aguardasse a resposta do servidor.</td></tr>
+        <tr><td>API</td><td>Contrato que expõe recursos e ações do servidor para o front-end.</td><td>O front-end não teria como pedir ou enviar dados padronizados.</td></tr>
+        <tr><td>JSON</td><td>Formato textual neutro que carrega os dados na requisição e na resposta.</td><td>Faltaria um padrão leve para trocar objetos e listas entre sistemas.</td></tr>
+        <tr><td>Web Storage</td><td>Persistência local de preferências e estado entre acessos, sem servidor.</td><td>Configurações e rascunhos se perderiam ao fechar a aba.</td></tr>
+        <tr><td>Módulos</td><td>Divide o código em arquivos com responsabilidades e reuso claros.</td><td>Código único, acoplado, com nomes conflitantes e manutenção cara.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3 style="margin:26px 0 10px">Critérios de avaliação × como este material atende</h3>
+  <div class="tbl-wrap">
+    <table class="tbl">
+      <colgroup><col style="width:30%"><col style="width:70%"></colgroup>
+      <thead><tr><th>Critério</th><th>Evidência neste infográfico</th></tr></thead>
+      <tbody>
+        <tr><td>Clareza na expressão oral e escrita</td><td>Definições curtas em linguagem direta, analogia do garçom, legendas em todos os diagramas e exemplos de código comentados em português.</td></tr>
+        <tr><td>Compreensão</td><td>Cada eixo parte de uma pergunta central (o quê, por quê e como), com tabelas comparativas e ordem de leitura em mapas e linhas do tempo.</td></tr>
+        <tr><td>Construção de conceitos</td><td>Mapa mental central com os seis pilares, árvore do DOM ilustrada, ciclo requisição–processamento–resposta e diagrama de arquivos dos módulos.</td></tr>
+        <tr><td>Criatividade</td><td>Quatro demonstrações interativas: manipulação de DOM, consumo de API real, conversor JSON e armazenamento local, além de simulação de módulo.</td></tr>
+        <tr><td>Domínio dos conceitos</td><td>Métodos reais das APIs nativas (<code>querySelector</code>, <code>fetch</code>, <code>JSON.parse/stringify</code>, <code>localStorage</code>, <code>export/import</code>), tabelas de métodos HTTP e status codes, e referências da documentação oficial.</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+
+</main>
+
+<!-- ============ Footer ============ -->
+<footer class="footer wrap">
+  <strong>Referências e fontes de consulta</strong>
+  <ul class="refs" id="referencias"></ul>
+  <p style="margin-top:14px">Material de estudo para a Recuperação Contínua — Desenvolvimento Web. Os exemplos usam APIs nativas do navegador (DOM, Fetch, JSON, Web Storage, ES Modules); as demonstrações são executadas localmente nesta página.</p>
+</footer>
+
+<script>
+/* ================= Referências oficial ================= */
+const REFERENCIAS = [
+  ["MDN Web Docs · Document Object Model (DOM)", "https://developer.mozilla.org/pt-BR/docs/Web/API/Document_Object_Model"],
+  ["MDN Web Docs · Fetch API (requisições assíncronas)", "https://developer.mozilla.org/pt-BR/docs/Web/API/Fetch_API"],
+  ["MDN Web Docs · Promise (estados e encadeamento)", "https://developer.mozilla.org/pt-BR/docs/Web/JavaScript/Reference/Global_Objects/Promise"],
+  ["MDN Web Docs · async / await", "https://developer.mozilla.org/pt-BR/docs/Web/JavaScript/Reference/Statements/async_function"],
+  ["MDN Web Docs · JSON.parse() e JSON.stringify()", "https://developer.mozilla.org/pt-BR/docs/Web/JavaScript/Reference/Global_Objects/JSON"],
+  ["json.org · Especificação oficial do formato JSON", "https://www.json.org/json-pt.html"],
+  ["MDN Web Docs · Window.localStorage (Web Storage API)", "https://developer.mozilla.org/pt-BR/docs/Web/API/Window/localStorage"],
+  ["MDN Web Docs · Módulos JavaScript (import / export)", "https://developer.mozilla.org/pt-BR/docs/Web/JavaScript/Guide/Modules"],
+  ["MDN Web Docs · Glossário: arquitetura REST", "https://developer.mozilla.org/pt-BR/docs/Glossary/REST"],
+  ["JSONPlaceholder · API pública de exemplo para testes", "https://jsonplaceholder.typicode.com/"]
+];
+document.getElementById("referencias").innerHTML = REFERENCIAS
+  .map(([label, url]) => `<li><a href="${url}" target="_blank" rel="noopener">${label}</a></li>`).join("");
+
+/* ================= Demo 01 · DOM ================= */
+(function () {
+  const box = document.getElementById("domBox");
+  const lista = document.getElementById("domLista");
+  const contador = document.getElementById("domContador");
+  const textos = [
+    "Caixa de demonstração: o texto e o estilo abaixo vêm do JavaScript.",
+    "Texto trocado com textContent: o nó continua o mesmo, só o conteúdo muda.",
+    "Agora a classe .destaque foi removida; isso é uma alteração de classList."
+  ];
+  let cliques = 0, tarefas = 0, indiceTexto = 0;
+  document.querySelectorAll("[data-dom]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      cliques++;
+      contador.textContent = cliques;
+      const acao = btn.dataset.dom;
+      if (acao === "texto") {
+        indiceTexto = (indiceTexto + 1) % textos.length;
+        box.textContent = textos[indiceTexto];
+      } else if (acao === "classe") {
+        box.classList.toggle("destaque");
+      } else if (acao === "add") {
+        tarefas++;
+        const li = document.createElement("li");
+        li.textContent = "Tarefa " + tarefas + " (criada com createElement e append)";
+        li.addEventListener("click", () => li.classList.toggle("feito"));
+        lista.append(li);
+      } else if (acao === "remove") {
+        if (lista.lastElementChild) lista.lastElementChild.remove();
+      } else if (acao === "limpar") {
+        lista.innerHTML = "";
+        tarefas = 0;
+      }
+    });
+  });
+})();
+
+/* ================= Demo 02 · Fetch / API ================= */
+(function () {
+  const btn = document.getElementById("apiBtn");
+  const req = document.getElementById("apiRequisicao");
+  const resp = document.getElementById("apiResposta");
+  const status = document.getElementById("apiStatus");
+  btn.addEventListener("click", async () => {
+    btn.disabled = true;
+    status.textContent = "Requisição pendente… a página continua respondendo enquanto aguarda.";
+    req.innerHTML = "<span class='empty'>Montando: método GET + URL + cabeçalho Accept: application/json…</span>";
+    resp.innerHTML = "<span class='empty'>Aguardando a resposta do servidor…</span>";
+    const id = Math.floor(Math.random() * 10) + 1;
+    try {
+      const t0 = performance.now();
+      const r = await fetch("https://jsonplaceholder.typicode.com/users/" + id);
+      const ms = Math.round(performance.now() - t0);
+      if (!r.ok) throw new Error("HTTP " + r.status);
+      const u = await r.json();
+      status.textContent = "Status " + r.status + " OK · resposta em " + ms + " ms · verbo HTTP: GET";
+      req.innerHTML = "<code>GET https://jsonplaceholder.typicode.com/users/" + id + "</code><br>Cabeçalhos: Accept: application/json<br>Corpo enviado: (vazio em GET)";
+      resp.innerHTML = "<strong>" + u.name + "</strong><br>@" + u.username + " · " + u.email + "<br>Telefone: " + u.phone + "<br>Empresa: " + u.company.name;
+    } catch (erro) {
+      status.textContent = "Modo offline: falha de rede; dados locais simulados (fallback do demo).";
+      req.innerHTML = "<code>GET /users/" + id + "</code><br>Motivo da falha: " + erro.message + " · exibindo equivalente local";
+      resp.innerHTML = "<strong>Usuário Offline (simulado)</strong><br>@dev.demo · demo@exemplo.com<br>Telefone: (00) 0000-0000<br>Empresa: dados locais da demonstração";
+    } finally {
+      btn.disabled = false;
+    }
+  });
+})();
+
+/* ================= Demo 03 · Conversor JSON ================= */
+(function () {
+  const entrada = document.getElementById("jsonEntra");
+  const saida = document.getElementById("jsonSaida");
+  const erro = document.getElementById("jsonErro");
+  const exemplo = entrada.value;
+  let ultimoObjeto = null;
+  function escaparHtml(s) {
+    return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  }
+  document.getElementById("btnParse").addEventListener("click", () => {
+    erro.textContent = "";
+    try {
+      ultimoObjeto = JSON.parse(entrada.value);
+      saida.innerHTML = "<strong>Resultado de JSON.parse() — objeto JavaScript:</strong><br><code style='white-space:pre-wrap;display:block;margin-top:6px'>const objeto = " +
+        escaparHtml(JSON.stringify(ultimoObjeto, null, 2)) + "</code>";
+      erro.style.color = "#0b6359";
+      erro.textContent = "Conversão bem-sucedida: o texto virou um objeto acessível por propriedades (ex.: objeto.nome).";
+    } catch (e) {
+      ultimoObjeto = null;
+      saida.innerHTML = "<span class='empty'>Não foi possível converter.</span>";
+      erro.style.color = "#9d2f46";
+      erro.textContent = "SyntaxError: " + e.message + " — reveza aspas duplas, vírgulas e a vírgula do último item.";
+    }
+  });
+  document.getElementById("btnStringify").addEventListener("click", () => {
+    if (ultimoObjeto === null) {
+      erro.style.color = "#9d2f46";
+      erro.textContent = "Primeiro use JSON.parse() para ter um objeto em memória; depois stringify o devolve como texto.";
+      return;
+    }
+    erro.style.color = "#0b6359";
+    entrada.value = JSON.stringify(ultimoObjeto, null, 2);
+    saida.innerHTML = "<strong>Resultado de JSON.stringify(obj, null, 2) — texto JSON pronto para a rede:</strong><br><code style='white-space:pre-wrap;display:block;margin-top:6px'>" +
+      escaparHtml(entrada.value) + "</code>";
+    erro.textContent = "O objeto foi serializado em texto formatado (identação de 2 espaços).";
+  });
+  document.getElementById("btnJsonExemplo").addEventListener("click", () => {
+    entrada.value = exemplo;
+    ultimoObjeto = null;
+    saida.innerHTML = "<span class='empty'>O resultado aparece aqui: objeto com tipos e propriedades, ou texto JSON formatado.</span>";
+    erro.textContent = "";
+  });
+})();
+
+/* ================= Demo 05 · Web Storage ================= */
+(function () {
+  const PREFIXO = "demo_";
+  const entrada = document.getElementById("storageNome");
+  const listaEl = document.getElementById("storageLista");
+  const estadoEl = document.getElementById("storageEstado");
+
+  let visitas = parseInt(localStorage.getItem(PREFIXO + "visitas") || "0", 10) + 1;
+  localStorage.setItem(PREFIXO + "visitas", String(visitas));
+  if (!sessionStorage.getItem(PREFIXO + "sessao")) {
+    sessionStorage.setItem(PREFIXO + "sessao", new Date().toLocaleTimeString("pt-BR"));
+  }
+
+  function renderizar() {
+    const chaves = Object.keys(localStorage).filter((k) => k.startsWith(PREFIXO));
+    if (!chaves.length) {
+      listaEl.innerHTML = "<span class='empty'>Nenhuma chave ainda.</span>";
+    } else {
+      listaEl.innerHTML = chaves.map((k) =>
+        "<div style='margin:6px 0;padding:6px 10px;background:#fff;border:1px solid var(--line);border-radius:9px'>" +
+        "<code>" + k + "</code> = <strong>" + escapar(localStorage.getItem(k)) + "</strong> " +
+        "<button class='btn' data-del='" + k + "' style='padding:2px 9px;font-size:12px;margin-left:6px'>remover</button></div>"
+      ).join("");
+      listaEl.querySelectorAll("[data-del]").forEach((b) => {
+        b.addEventListener("click", () => { localStorage.removeItem(b.dataset.del); renderizar(); });
+      });
+    }
+    estadoEl.innerHTML =
+      "<div><strong>localStorage:</strong> " + visitas + " visita(s) desta página (persiste após fechar o navegador).</div>" +
+      "<div style='margin-top:6px'><strong>sessionStorage:</strong> sessão iniciada às " + escapar(sessionStorage.getItem(PREFIXO + "sessao")) + " (some ao fechar a aba).</div>" +
+      "<div style='margin-top:6px'><strong>Total de chaves do demo:</strong> " + chaves.length + "</div>";
+  }
+  function escapar(s) { return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;"); }
+
+  document.getElementById("storageSalvar").addEventListener("click", () => {
+    const valor = entrada.value.trim();
+    if (!valor) { entrada.focus(); return; }
+    localStorage.setItem(PREFIXO + "preferencia", valor);
+    entrada.value = "";
+    renderizar();
+  });
+  document.getElementById("storageLimpar").addEventListener("click", () => {
+    Object.keys(localStorage).filter((k) => k.startsWith(PREFIXO)).forEach((k) => localStorage.removeItem(k));
+    renderizar();
+  });
+  renderizar();
+})();
+
+/* ================= Demo 04 · Simulador de módulos ================= */
+(function () {
+  const saida = document.getElementById("modSaida");
+  const saudacao = "Olá, módulo!";
+  function formatarData(data) { return new Date(data).toLocaleDateString("pt-BR"); }
+  function somar(a, b) { return a + b; }
+  document.getElementById("modRun").addEventListener("click", () => {
+    const linhas = [
+      "$ import somar, { saudacao, formatarData } from \"./utils.js\"",
+      "$ console.log(saudacao)",
+      "« " + saudacao + " »",
+      "$ console.log(\"2 + 3 =\", somar(2, 3))",
+      "« 2 + 3 = " + somar(2, 3) + " »",
+      "$ console.log(\"Hoje:\", formatarData(new Date()))",
+      "« Hoje: " + formatarData(new Date()) + " »",
+      "",
+      "// export default somar · export nomeados: saudacao, formatarData"
+    ];
+    saida.innerHTML = linhas.map((l) => "<div>" + (l || "&nbsp;") + "</div>").join("");
+  });
+})();
+</script>
+
+</body>
+</html>
